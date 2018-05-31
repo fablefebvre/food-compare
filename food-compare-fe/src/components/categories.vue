@@ -1,26 +1,25 @@
 <template>
-<div>
-  Filter: <input type="text" v-model="search"/>
-    <ul v-if="filteredCategories && filteredCategories.length">
-      <li v-for="category of filteredCategories">
-        <a href="#" v-on:click="showBestProducts('div_' + category.label)">
-        	{{category.label}}
-        </a>
-        <div :id="'div_' + category.label" style="display: none"><bestproducts :id="'bp_' + category.label" :category="category.label"/></div>
-      </li>
-    </ul>
+<div id="categories">
+	<div id="search">
+	  <findBar :categories="categories" @select="onCategorySelect" />
+	</div>
+	<div id="result">
+		<bestproducts :category="category" />
+	</div>
 </div>
 </template>
 <script>
 import axios from 'axios'
 import bestproducts from './bestproducts.vue'
+import findBar from './findBar.vue'
 
 export default {
 	name:'categories',
 	data() {
 		return {
 			search: '',
-			categories: []
+			categories: [],
+			category: ''
 		}
 	},
 	  mounted () {
@@ -31,7 +30,7 @@ export default {
 	computed: {
 		filteredCategories:function() {
 			var self=this;
-			return this.categories.filter(function(category){return category.label.toLowerCase().indexOf(self.search.toLowerCase())>=0;});
+			return this.categories.filter(function(category){return category.label_fr.toLowerCase().indexOf(self.search.toLowerCase())>=0;});
 		}
 	},
 	methods: {
@@ -44,10 +43,15 @@ export default {
 			 } else {
 			 	styleCategory.display = 'none';
 			 }
-		}
+		},
+		onCategorySelect(category) {
+        	console.log('Selected category:', category.label_fr);
+        	this.category = category.label_fr;
+      	}
 	},
 	components: {
-		bestproducts
+		bestproducts,
+		findBar
 	}
 }
 </script>
