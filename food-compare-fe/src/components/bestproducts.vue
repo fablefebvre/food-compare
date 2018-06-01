@@ -242,7 +242,8 @@ export default {
   props: ['category'],
   watch: {
     category: function(newVal, oldVal) {
-  		console.log('Changing category from: ' + oldVal + ' to: ' + newVal)
+  		//console.log('Changing category from: ' + oldVal + ' to: ' + newVal)
+      console.time("updating category");
   		axios
 	      .get('http://localhost:4000/api/findBestProducts/' + newVal)
 	      .then(response => {
@@ -264,7 +265,7 @@ export default {
                   typeof productData.nutriments['sugars_100g'] !== 'undefined' &&
                   typeof productData.nutriments['sodium_100g'] !== 'undefined') {
                   // calculating note SH...
-                  console.log("calculating noteSH...")
+                  //console.log("calculating noteSH...")
                   var energyNote = getEnergyNote(productData.nutriments['energy_100g']);
                   var saturatedFatNote = getSaturatedFatNote(productData.nutriments['saturated-fat_100g']);
                   var sugarsNote = getSugarsNote(productData.nutriments['sugars_100g']);
@@ -273,13 +274,13 @@ export default {
                   var fiberNote = getFiberNote(productData.nutriments['fiber_100g']);
                   var proteinsNote = getProteinsNote(productData.nutriments['proteins_100g']);
 
-                  console.log("\nenergyNote=" + energyNote +
-                        "\nsaturatedFatNote=" + saturatedFatNote +
-                        "\nsugarsNote=" + sugarsNote +
-                        "\nsodiumNote=" + sodiumNote +
-                        "\nfruitsNote=" + fruitsNote + 
-                        "\nfiberNote=" + fiberNote +
-                        "\nproteinsNote" + proteinsNote);
+                  //console.log("\nenergyNote=" + energyNote +
+                        //"\nsaturatedFatNote=" + saturatedFatNote +
+                        //"\nsugarsNote=" + sugarsNote +
+                        //"\nsodiumNote=" + sodiumNote +
+                        //"\nfruitsNote=" + fruitsNote + 
+                        //"\nfiberNote=" + fiberNote +
+                        //"\nproteinsNote" + proteinsNote);
 
                   // see https://fr.openfoodfacts.org/score-nutritionnel-france to know how the note is calculated
                   var noteA = energyNote + saturatedFatNote + sugarsNote + sodiumNote;
@@ -288,7 +289,7 @@ export default {
                   } else {
                     noteSH = noteA - fruitsNote - fiberNote - proteinsNote;
                   }
-                  console.log('noteSH: ' + noteSH);
+                  //console.log('noteSH: ' + noteSH);
                 } else {
                   //not adding the product...
                 }
@@ -310,6 +311,7 @@ export default {
           this.products = this.products.sort(function(a,b){
             return b.score-a.score;
           })
+          console.timeEnd("updating category");
         })
   	}
   },

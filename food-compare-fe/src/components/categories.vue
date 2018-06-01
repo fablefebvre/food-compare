@@ -19,34 +19,36 @@ export default {
 		return {
 			search: '',
 			categories: [],
-			category: ''
+			category: '',
+			locale: 'fr',
+			categoriesTax: []
 		}
 	},
-	  mounted () {
+	mounted() {
 	    axios
 	      .get('http://localhost:4000/api/categoriesTax')
-	      .then(response => (this.categories = response.data))
+	      .then(response => {
+	      	// saving all categories in all languages locally
+	      	this.categoriesTax = response.data;
+	      	// filtering only on the current locale
+	      	this.categories = 
+	      		// filtering category with the current this.locale
+	      		this.categoriesTax.map(category => category.locales.filter(locale => locale.language == this.locale))
+	      		// removing empty categories (with no traduction for current this.locale)
+	      		.filter(localeCategory => localeCategory.length > 0)
+	      		// we have array of 1 element so taking the first element of each array
+	      		.map(c => c[0]);
+	      });
 	},
 	computed: {
 		filteredCategories:function() {
 			var self=this;
-			return this.categories.filter(function(category){return category.label_fr.toLowerCase().indexOf(self.search.toLowerCase())>=0;});
+			return this.categories.filter(category => category.labels.join(", ").toLowerCase().indexOf(self.search.toLowerCase())>=0);
 		}
 	},
 	methods: {
-		showBestProducts(category) {
-			var styleCategory = document.getElementById(category).style;
-			 if(styleCategory.display == 'none') {
-			 	styleCategory.display = 'block';
-			 	console.log('Emitting event_'+category);
-			 	this.$emit('event_'+category);
-			 } else {
-			 	styleCategory.display = 'none';
-			 }
-		},
 		onCategorySelect(category) {
-        	console.log('Selected category:', category.label_fr);
-        	this.category = category.label_fr;
+        	this.category = category;
       	}
 	},
 	components: {

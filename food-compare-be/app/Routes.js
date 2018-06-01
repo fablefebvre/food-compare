@@ -15,47 +15,51 @@ var lineReader = require('readline').createInterface({
   input: require('fs').createReadStream('app/categories.tax')
 });
 
-var categories = [];
-var categories_map = {};
-var category = {
-  parent: [],
-  label_fr: '',
-  label_en: '',
-  pushed: false
-};
-
-var key = function(category) {
-  return category.label_fr;
+var getKey = function(category) {
+  var key = '';
+  if(category.label_en != '') {
+    key = 'en:' + category.label_en.substring(0, category.label_en.indexOf(','));
+  } else {
+    key = 'fr:' + category.label_fr.substring(0, category.label_fr.indexOf(','));;
+  }
+  return getCanonicalValue(key);
 }
 
+var categories = [];
+var parents = [];
+var currentCategory = {
+  parents: [],
+  locales: []
+};
+
 lineReader.on('line', function (line) {
-  if(!line.startsWith('synonyms') && !line.startsWith('stopwords')) { 
+  if(!line.startsWith('synonyms') && !line.startsWith('stopwords') && !line.startsWith('wikidata')) { 
     if(line != '') {
-      if(category.pushed) {
-        category = new Object();
-        category = {
-          parent: [],
-          label_fr: '',
-          label_en: '',
-          pushed: false
-        };
+      if(line.startsWith('<')) {
+        parents.push(line.substring(line.indexOf('<')+1, line.length));
       }
-      if(line.startsWith('<')) { 
-        category.parent.push(line.substring(line.indexOf('<')+1, line.length));
-      } else {
-        if(line.startsWith('fr:')) { 
-          category.label_fr = line.substring(line.indexOf(':')+1, line.length);
+      else {
+        var language = line.substring(0, line.indexOf(":"));
+        var labels = line.substring(line.indexOf(":")+1, line.length).split(",").map(label => label.trim());
+        var localeCategory = {
+          language: language,
+          labels: labels,
+          canonicals: labels.map(label => getCanonicalValue(language + ":" + label))
         }
-        if(line.startsWith('en:')) { 
-          category.label_en = line.substring(line.indexOf(':')+1, line.length);
-        }
+        currentCategory.locales.push(localeCategory);
       }
-    } else {
-      category.pushed = true;
-      if(category.label_fr != '' || category.label_en != '') {
-        categories.push(category);
-        categories_map[key(category)] = category;
+    }
+    else {
+      if(currentCategory.locales.length > 0) {
+        currentCategory.parents = parents;
+        categories.push(currentCategory);
       }
+      currentCategory = new Object();
+      currentCategory = {
+        parents: [],
+        locales: []
+      };
+      parents = new Array();
     }
   }
 });
@@ -93,7 +97,7 @@ offSortRoutes.route('/findByBarCode/:barCode').get(function (req, res, next) {
   // left padding with zeros to have a EAN-13 barcode
   var pad = "0000000000000"
   var barCode = (pad + req.params.barCode).slice(-pad.length)
-  Products.findOne().where('code').equals(barCode).select("product_name categories").exec(function (err, product) {
+  Products.findOne().where('code').equals(barCode).select("product_name categories_tags").exec(function (err, product) {
     if (err) {
       return next(new Error(err))
     }
@@ -103,35 +107,18 @@ offSortRoutes.route('/findByBarCode/:barCode').get(function (req, res, next) {
 
 // get best products of category
 offSortRoutes.route('/findBestProducts/:category').get(function (req, res, next) {
-  var category = categories_map[req.params.category];
+  var canonicalCategory = req.params.category;
 
-  var regexCategories = [];
+  var category = findCategory(canonicalCategory);
 
-  if(typeof category !== 'undefined') {
-    // coming from categories page
-    var frCategories = category.label_fr.split(",").map(category => category.trim());
-    var frCanonicalValues = getCanonicalValues(frCategories);
+  var canonicalsTab = {}
+  var canonicals = [].concat.apply([], category.locales.map(locale => locale.canonicals));
 
-    regexCategories = frCategories.concat(frCanonicalValues);
+  console.log(canonicals);
 
-    if(category.label_en) {
-      var enCategories = category.label_en.split(",").map(category => category.trim());
-      var enCanonicalValues = getCanonicalValues(enCategories);
-      regexCategories = regexCategories.concat(enCategories).concat(enCanonicalValues);
-    }
-  } else {
-    // coming from barCode page
-    category = req.params.category;
-    regexCategories = [category, category.toLowerCase().replace(/ /g, "-")];
-  }
+  //var regex = category.canonicals.map(canonical => new RegExp(canonical, "i"));
 
-  console.log("regex: " + regexCategories);
-
-  var regex = regexCategories.map(category => new RegExp(category, "i"));;
-
-  console.log('searching for: ' + regex);
-
-  Products.find({categories: {$in: regex}}).select("code product_name nutriments").exec(function (err, products) {
+  Products.find({categories_tags: {$in: canonicals}}).select("code product_name nutriments").exec(function (err, products) {
     if (err) {
       return next(new Error(err))
     }
@@ -140,8 +127,28 @@ offSortRoutes.route('/findBestProducts/:category').get(function (req, res, next)
 
 })
 
+var getCanonicalValue = function(category) {
+  // lower case + replacing spaces by dashes + removing accents
+  return category.toLowerCase().replace(/ /g, "-").normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+}
+
+
 var getCanonicalValues = function(categories) {
-  return categories.map(category => category.toLowerCase().replace(/ /g, "-"));
+  return categories.map(category => getCanonicalValue(category));
+}
+
+var findCategory = function (canonicalCategory) {
+  console.time("findCategory");
+  for(var i=0; i<categories.length; i++) {
+    var category = categories[i];
+    for(var j=0; j<category.locales.length; j++) {
+      var localeCategory = category.locales[j];
+      if(localeCategory.canonicals.indexOf(canonicalCategory) > -1) {
+        console.timeEnd("findCategory")
+        return category;
+      }
+    }
+  }
 }
 
 module.exports = offSortRoutes

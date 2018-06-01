@@ -32,9 +32,9 @@ export default {
 	      	var productData = response.data;
 	      	this.product = {
 	      		product_name: productData.product_name,
-	      		categories: productData.categories.split(",").map(category => category.trim())
+	      		categories: productData.categories_tags
 	      	}
-	      	this.category = this.product.categories[0];
+	      	this.category = this.product.categories[this.product.categories.length-1];
 	      })
         }
 	},

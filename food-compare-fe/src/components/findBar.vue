@@ -9,7 +9,7 @@
       <li v-for="(category, index) in fCategories" :class="{
           'highlighted': index === highlightedPosition
         }" @mouseenter="highlightedPosition = index" @mousedown="select">
-        {{category.label_fr}}
+        {{category.labels.join(", ")}}
       </li>
     </ul>
   </div>
@@ -72,7 +72,7 @@ export default{
     computed: {
       fCategories() {
         const re = new RegExp(this.keyword, 'i')
-        return this.categories.filter(o => o.label_fr.match(re))
+        return this.categories.filter(category => category.labels.join(", ").toLowerCase().match(re));
       }
     },
     methods: {
@@ -95,9 +95,10 @@ export default{
         },
         select() {
           const selectedCategory = this.fCategories[this.highlightedPosition]
-          this.$emit('select', selectedCategory)
+          console.log(selectedCategory.canonicals[0]);
+          this.$emit('select', selectedCategory.canonicals[0])
           this.isOpen = false
-          this.keyword = selectedCategory.title
+          this.keyword = selectedCategory.labels.join(", ")
         }
     }
  }
