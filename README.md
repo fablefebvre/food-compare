@@ -10,7 +10,7 @@ https://world.openfoodfacts.org/data/openfoodfacts-mongodbdump.tar.gz
 mongorestore --port <port number>
 
 ### Create index for categories
-openfoodfacts.products.createIndex({categories: 1})
+off.products.createIndex({categories_tags: 1})
 
 ### food-compare-be
 Contains the back end: REST API with mongoose to connect to the MongoDB instance
