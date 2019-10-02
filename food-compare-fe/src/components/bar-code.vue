@@ -1,8 +1,9 @@
 <template>
 <div>
 <input v-model="barCode" @keydown.enter="select" />
-<bestproducts :category="category" />
-
+<barcode v-bind:value="barCode" format="EAN13">
+  Please enter a valid EAN-13 bar code.
+</barcode>
 {{product.product_name}}
 Categories:
 <ul>
@@ -10,11 +11,13 @@ Categories:
 		{{category}}
 	</li>
 </ul>
+<bestproducts :category="category" />
 </div>
 </template>
 <script>
 import bestproducts from './bestproducts.vue';
 import axios from 'axios';
+import VueBarcode from 'vue-barcode';
 
 export default {
 	data() {
@@ -39,7 +42,8 @@ export default {
         }
 	},
 	components: {
-		bestproducts
+		bestproducts,
+		'barcode': VueBarcode
 	}
 
 }

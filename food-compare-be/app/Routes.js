@@ -97,7 +97,7 @@ offSortRoutes.route('/findByBarCode/:barCode').get(function (req, res, next) {
   // left padding with zeros to have a EAN-13 barcode
   var pad = "0000000000000"
   var barCode = (pad + req.params.barCode).slice(-pad.length)
-  Products.findOne().where('code').equals(barCode).select("product_name categories_tags").exec(function (err, product) {
+  Products.findOne().where('code').equals(barCode)/*.select("product_name categories_tags")*/.exec(function (err, product) {
     if (err) {
       return next(new Error(err))
     }
@@ -118,10 +118,11 @@ offSortRoutes.route('/findBestProducts/:category').get(function (req, res, next)
 
   //var regex = category.canonicals.map(canonical => new RegExp(canonical, "i"));
 
-  Products.find({categories_tags: {$in: canonicals}}).select("code product_name nutriments").exec(function (err, products) {
+  Products.find({categories_tags: {$in: canonicals}}).select("code product_name brands nutriments").exec(function (err, products) {
     if (err) {
       return next(new Error(err))
     }
+    console.log('Products: ' + products);
     res.json(products) // return the products
   })
 

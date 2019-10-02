@@ -1,15 +1,24 @@
 <template>
   <div>
-  	<ul>
+  	<ul class="columns">
   		<li v-for="product of products">
-  			<a :href="'https://fr.openfoodfacts.org/produit/' + product.barCode">{{product.name}}</a> / {{product.score}}
+  			<a :href="'https://fr.openfoodfacts.org/produit/' + product.barCode">{{product.name}} </a> - <b>{{product.brands}}</b> / {{product.score}} / <barcode format="EAN13" height=60 v-bind:value="product.barCode" />
+        <br/><br/><br/><br/><br/>
   		</li>
   	</ul>
   </div>
 </template>
+<style type="text/css">
+.columns {
+      -webkit-columns: 2;
+      -moz-columns: 2;
+      columns: 2;
+}
+</style>
 <script>
-import axios from 'axios'
-import productNote from './productNote.vue'
+import axios from 'axios';
+import productNote from './productNote.vue';
+import VueBarcode from 'vue-barcode';
 
 var getEnergyNote = function(energy_100g) {
   if(typeof energy_100g !== 'undefined') {
@@ -302,7 +311,8 @@ export default {
                   name: productData.product_name,
                   // calculating a score between 0 and 100
                   score: Math.round(((noteSH * -1) + 40) * 100 / 55),
-                  barCode: productData.code
+                  barCode: productData.code,
+                  brands: productData.brands
                 };
                 this.products.push(product);
               }
@@ -316,7 +326,8 @@ export default {
   	}
   },
   components: {
-    productNote
+    productNote,
+    'barcode': VueBarcode
   }
 }
 </script>
