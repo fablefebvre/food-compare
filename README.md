@@ -22,5 +22,5 @@ http://localhost:4000/api/findBestProducts/:category => returns the best product
 
 ### food-compare-fe
 Contains the front end: Developed with Vue.js
-Run the sever: npm run dev
+Run the sever: npm run serve
 Launch the app: http://localhost:8081/

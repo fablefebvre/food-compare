@@ -15,7 +15,7 @@ Categories:
 </div>
 </template>
 <script>
-import bestproducts from './bestproducts.vue';
+import bestproducts from "@/components/bestproducts.vue";
 import axios from 'axios';
 import VueBarcode from 'vue-barcode';
 

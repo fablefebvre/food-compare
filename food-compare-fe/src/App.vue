@@ -1,10 +1,18 @@
 <template>
   <div id="app">
     <!-- the router outlet, where all matched components would ber viewed -->
-    <router-link v-bind:to="'/'">Home</router-link>
-    <router-link v-bind:to="'/categories'">Categories Search</router-link>
-    <router-link v-bind:to="'/barcode'">Bar Code Search</router-link>
-    <router-view/>
+    <b-card title="Food Compare" no-body>
+      <b-card-header header-tag="nav">
+        <b-nav pills>
+          <b-nav-item :to="'/'" exact exact-active-class="active">Home</b-nav-item>
+          <b-nav-item :to="'/categories'" exact exact-active-class="active">Categories Search</b-nav-item>
+          <b-nav-item :to="'/barcode'" exact exact-active-class="active">Bar Code Search</b-nav-item>
+        </b-nav>
+      </b-card-header>
+      <b-card-body class="text center">
+        <router-view/>
+      </b-card-body>
+    </b-card>
   </div>
 </template>
 

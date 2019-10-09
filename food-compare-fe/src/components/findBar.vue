@@ -21,6 +21,7 @@ input {
 
 .findBar {
   position: relative;
+  z-index: 99;
 }
 
 ul.categories-list {

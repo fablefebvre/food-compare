@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 
-import Home from '@/components/Home'
-import Categories from '@/components/categories'
-import BarCode from '@/components/bar-code'
+import Home from '@/views/Home'
+import Categories from '@/views/Categories'
+import BarCode from '@/views/BarCode'
 
 Vue.use(Router)
 

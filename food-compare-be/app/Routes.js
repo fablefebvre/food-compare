@@ -114,15 +114,13 @@ offSortRoutes.route('/findBestProducts/:category').get(function (req, res, next)
   var canonicalsTab = {}
   var canonicals = [].concat.apply([], category.locales.map(locale => locale.canonicals));
 
-  console.log(canonicals);
+  //console.debug(canonicals);
 
-  //var regex = category.canonicals.map(canonical => new RegExp(canonical, "i"));
-
-  Products.find({categories_tags: {$in: canonicals}}).select("code product_name brands nutriments").exec(function (err, products) {
+  Products.find({categories_tags: {$in: canonicals}}).select("code product_name brands nutriments images").exec(function (err, products) {
     if (err) {
       return next(new Error(err))
     }
-    console.log('Products: ' + products);
+    //console.debug('Products: ' + products);
     res.json(products) // return the products
   })
 
@@ -139,13 +137,13 @@ var getCanonicalValues = function(categories) {
 }
 
 var findCategory = function (canonicalCategory) {
-  console.time("findCategory");
+  //console.time("findCategory");
   for(var i=0; i<categories.length; i++) {
     var category = categories[i];
     for(var j=0; j<category.locales.length; j++) {
       var localeCategory = category.locales[j];
       if(localeCategory.canonicals.indexOf(canonicalCategory) > -1) {
-        console.timeEnd("findCategory")
+        //console.timeEnd("findCategory")
         return category;
       }
     }

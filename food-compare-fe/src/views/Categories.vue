@@ -4,14 +4,22 @@
 	  <findBar :categories="categories" @select="onCategorySelect" />
 	</div>
 	<div id="result">
-		<bestproducts :category="category" />
+		<b-row>
+			<b-col cols="4" class="h-scroll">
+				<bestproducts :category="category" />
+			</b-col>
+			<b-col cols="8">
+				<selectedProduct :product="product" />
+			</b-col>
+		</b-row>
 	</div>
 </div>
 </template>
 <script>
 import axios from 'axios'
-import bestproducts from './bestproducts.vue'
-import findBar from './findBar.vue'
+import bestproducts from "@/components/bestproducts.vue";
+import selectedProduct from "@/components/selectedProduct.vue"
+import findBar from '@/components/findBar.vue'
 
 export default {
 	name:'categories',
@@ -53,6 +61,7 @@ export default {
 	},
 	components: {
 		bestproducts,
+		selectedProduct,
 		findBar
 	}
 }

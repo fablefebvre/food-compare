@@ -1,11 +1,12 @@
 <template>
   <div>
-  	<ul class="columns">
-  		<li v-for="product of products">
-  			<a :href="'https://fr.openfoodfacts.org/produit/' + product.barCode">{{product.name}} </a> - <b>{{product.brands}}</b> / {{product.score}} / <barcode format="EAN13" height=60 v-bind:value="product.barCode" />
-        <br/><br/><br/><br/><br/>
-  		</li>
-  	</ul>
+  	<b-list-group v-for="product of products">
+      <b-list-group-item href="#" class="flex-column align-items-start">
+        <div class="d-flex justify-content-between">
+          <b-link :href="'https://fr.openfoodfacts.org/produit/' + product.barCode">{{product.name}} </b-link> - <b>{{product.brands}}</b> / {{product.score}} / {{product.imageURL}} / <!--barcode format="EAN13" height=60 v-bind:value="product.barCode" /-->
+        </div>
+      </b-list-group-item>
+  	</b-list-group>
   </div>
 </template>
 <style type="text/css">
@@ -312,9 +313,38 @@ export default {
                   // calculating a score between 0 and 100
                   score: Math.round(((noteSH * -1) + 40) * 100 / 55),
                   barCode: productData.code,
-                  brands: productData.brands
+                  brands: productData.brands,
+                  imageURL: ''
                 };
+                axios
+	                .get('https://fr.openfoodfacts.org/api/v0/produit/' + productData.code)
+	                .then(response => {
+                    var data = response.data;
+                    var imageURL = data.product.image_small_url;
+                    // if image_small_url not defined, trying to fetch the first image in selected_images
+                    if(typeof imageURL == 'undefined') {
+                      //console.debug("trying to fix code: " + data.product.code)
+                      
+                      var firstKeyInSelectedImages;
+                      for(firstKeyInSelectedImages in data.product.selected_images);
+                      //console.debug("firstKeyInSelectedImages: " + firstKeyInSelectedImages);
+                      //console.debug("selected_images[firstKeyInSelectedImages]" + data.product.selected_images[firstKeyInSelectedImages]);
+
+                      if(typeof firstKeyInSelectedImages !== 'undefined') {
+                        var firstLang;
+                        for(firstLang in data.product.selected_images[firstKeyInSelectedImages].small);
+                        //console.debug("firstLang: " + firstLang);
+                        imageURL = data.product.selected_images[firstKeyInSelectedImages].small[firstLang];
+                        
+                        //console.debug("imageURL: " + imageURL)*/
+                      }
+                    }
+                    product.imageURL = imageURL;
+                    //console.debug("imageURL: " + imageURL + " for code: " + data.product.code);
+                  });
+                
                 this.products.push(product);
+                
               }
             } 
           }
