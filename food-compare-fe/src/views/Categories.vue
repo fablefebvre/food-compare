@@ -6,7 +6,7 @@
 	<div id="result">
 		<b-row>
 			<b-col cols="4" class="h-scroll">
-				<bestproducts :category="category" />
+				<bestproducts @productChanged="onChangeProduct" :category="category" />
 			</b-col>
 			<b-col cols="8">
 				<selectedProduct :product="product" />
@@ -29,7 +29,8 @@ export default {
 			categories: [],
 			category: '',
 			locale: 'fr',
-			categoriesTax: []
+			categoriesTax: [],
+			product: {}
 		}
 	},
 	mounted() {
@@ -57,7 +58,11 @@ export default {
 	methods: {
 		onCategorySelect(category) {
         	this.category = category;
-      	}
+		  },
+		  onChangeProduct(paramProduct) {
+			console.log("product: " + paramProduct);
+			this.product = paramProduct;
+		  }
 	},
 	components: {
 		bestproducts,
