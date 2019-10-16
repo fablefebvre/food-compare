@@ -1,6 +1,10 @@
 <template>
   <div>
-    <b-list-group v-for="product of orderedProducts" v-bind:data="product" v-bind:key="product.code">
+    <b-pagination size="md" :total-rows="orderedProducts.length" v-model="currentPage" 
+    :per-page="productsPerPage" @input="getProductsData(currentPage)">
+    </b-pagination>
+
+    <b-list-group id="my-table" v-for="product of currentProducts" v-bind:data="product" v-bind:key="product.code">
       <b-list-group-item href="#" class="flex-column align-items-start" v-on:click="changeProduct(product)">
         <div class="d-flex justify-content-between">
           <product-label :label=product.product_name :barCode=product.code />
@@ -24,7 +28,9 @@ export default {
   name: "bestproducts",
   data() {
     return {
-      products: []
+      products: [],
+      currentProducts: [],
+      productsPerPage: 20
     };
   },
   props: ["category", "product"],
@@ -38,6 +44,7 @@ export default {
           for (var i = 0; i < data.length; i++) {
             this.products.push(data[i]);
           }
+          this.getProductsData(1);
         });
     },
   },
@@ -56,8 +63,20 @@ export default {
   },
   methods: {
     changeProduct: function(product){
-      console.log("Barcode selected:" + product);
-      this.$emit("productChanged", product)
+      this.$emit("productChanged", product);
+    },
+    getProductsData(currentPage) {
+      if(this.products.length > 0) {
+        this.currentProducts = [];
+        let max = (currentPage-1) * this.productsPerPage + this.productsPerPage;
+        if(this.products.length < max) {
+          max = this.products.length;
+        }
+        for(let i=(currentPage-1) * this.productsPerPage; i < max; i++) {
+          this.currentProducts.push(this.orderedProducts[i]);
+        }
+        console.log(this.currentProducts);
+      }
     }
   }
 };
