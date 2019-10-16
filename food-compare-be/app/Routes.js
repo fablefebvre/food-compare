@@ -1,103 +1,75 @@
 'use strict'
 
-var express = require('express')
+const express = require('express')
 
-var mongoose = require('mongoose')
-var ObjectId = mongoose.Types.ObjectId;
+const offSortRoutes = express.Router()
 
-var offSortRoutes = express.Router()
-
-var Products = require('./off-sort')
-
-var MongoClient = require("mongodb").MongoClient;
-
-var lineReader = require('readline').createInterface({
-  input: require('fs').createReadStream('app/categories.tax')
-});
-
-var getKey = function(category) {
-  var key = '';
-  if(category.label_en != '') {
-    key = 'en:' + category.label_en.substring(0, category.label_en.indexOf(','));
-  } else {
-    key = 'fr:' + category.label_fr.substring(0, category.label_fr.indexOf(','));;
-  }
-  return getCanonicalValue(key);
-}
-
-var categories = [];
-var parents = [];
-var currentCategory = {
+const categories = [];
+let parents = [];
+let currentCategory = {
   parents: [],
   locales: []
 };
 
-lineReader.on('line', function (line) {
-  if(!line.startsWith('synonyms') && !line.startsWith('stopwords') && !line.startsWith('wikidata')) { 
-    if(line != '') {
-      if(line.startsWith('<')) {
-        parents.push(line.substring(line.indexOf('<')+1, line.length));
+const lineReader = require('readline').createInterface({
+    input: require('fs').createReadStream('app/categories.tax')
+  });
+
+lineReader.on('line', (line) => {
+    if(!line.startsWith('synonyms') && !line.startsWith('stopwords') && !line.startsWith('wikidata')) { 
+      if(line != '') {
+        if(line.startsWith('<')) {
+          parents.push(line.substring(line.indexOf('<')+1, line.length));
+        }
+        else {
+          let language = line.substring(0, line.indexOf(":"));
+          let labels = line.substring(line.indexOf(":")+1, line.length).split(",").map(label => label.trim());
+          let localeCategory = {
+            language: language,
+            labels: labels,
+            canonicals: labels.map(label => getCanonicalValue(language + ":" + label))
+          }
+          currentCategory.locales.push(localeCategory);
+        }
       }
       else {
-        var language = line.substring(0, line.indexOf(":"));
-        var labels = line.substring(line.indexOf(":")+1, line.length).split(",").map(label => label.trim());
-        var localeCategory = {
-          language: language,
-          labels: labels,
-          canonicals: labels.map(label => getCanonicalValue(language + ":" + label))
+        if(currentCategory.locales.length > 0) {
+          currentCategory.parents = parents;
+          categories.push(currentCategory);
         }
-        currentCategory.locales.push(localeCategory);
+        currentCategory = new Object();
+        currentCategory = {
+          parents: [],
+          locales: []
+        };
+        parents = new Array();
       }
     }
-    else {
-      if(currentCategory.locales.length > 0) {
-        currentCategory.parents = parents;
-        categories.push(currentCategory);
-      }
-      currentCategory = new Object();
-      currentCategory = {
-        parents: [],
-        locales: []
-      };
-      parents = new Array();
-    }
-  }
-});
+  });
 
-// get all unique categories in the db
-offSortRoutes.route('/categories').get(function (req, res, next) {
-  Products.find().distinct('categories', function (err, categories) {
-    if (err) {
-      return next(new Error(err))
-    }
-    var uniqueCategories = new Array()
-    for (var i = 0; i < categories.length; i++) {
-      if(categories[i]) {
-        var categoriesTab = categories[i].split(',')
-        for (var j = 0; j < categoriesTab.length; j++) {
-          if(uniqueCategories.indexOf(categoriesTab[j]) > -1) {
-              // nothing to do as the category is already in the array
-          } else {
-            uniqueCategories.push(categoriesTab[j]);
-          }
-        }
-      }
-    }
-    res.json(uniqueCategories.sort()) // return all unique categories
-  })
-})
+var getCanonicalValue = function(category) {
+// lower case + replacing spaces by dashes + removing accents
+return category.toLowerCase().replace(/ /g, "-").normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+}
 
 // get all unique categories in Taxonomy file
 offSortRoutes.route('/categoriesTax').get(function (req, res, next) {
   res.json(categories);
 })
 
+// get categories for a product
+offSortRoutes.route('/findCategories/:barCode').get(function (req, res, next) {
+  
+  res.json(categories);
+})
+
 // get categories from barCode
 offSortRoutes.route('/findByBarCode/:barCode').get(function (req, res, next) {
   // left padding with zeros to have a EAN-13 barcode
-  var pad = "0000000000000"
-  var barCode = (pad + req.params.barCode).slice(-pad.length)
-  Products.findOne().where('code').equals(barCode)/*.select("product_name categories_tags")*/.exec(function (err, product) {
+  let pad = "0000000000000"
+  let barCode = (pad + req.params.barCode).slice(-pad.length)
+  const products = req.app.locals.products;
+  products.find({code: barCode}).toArray(function (err, product) {
     if (err) {
       return next(new Error(err))
     }
@@ -107,16 +79,28 @@ offSortRoutes.route('/findByBarCode/:barCode').get(function (req, res, next) {
 
 // get best products of category
 offSortRoutes.route('/findBestProducts/:category').get(function (req, res, next) {
-  var canonicalCategory = req.params.category;
+  let canonicalCategory = req.params.category;
 
-  var category = findCategory(canonicalCategory);
+  let category = findCategory(canonicalCategory);
 
-  var canonicalsTab = {}
-  var canonicals = [].concat.apply([], category.locales.map(locale => locale.canonicals));
+  // 2 strategy can be applied
 
-  //console.debug(canonicals);
+  // 1) searching only with the english locale should be faster but it's not so keeping option 2) for the time being
+  /*var enCanonical = category.locales.filter(locale => locale.language == 'en').map(locale => locale.canonicals);
+  Products.find({categories_tags: {$eq: enCanonical[0][0]}}, {code: 1, product_name: 1, brands: 1, nutriments:1}, function (err, products) {
+    if (err) {
+      return next(new Error(err))
+    }
 
-  Products.find({categories_tags: {$in: canonicals}}).select("code product_name brands nutriments images").exec(function (err, products) {
+    //console.debug('Products: ' + products);
+    res.json(products) // return the products
+  })*/
+
+  // 2) searching on all locales
+  let canonicals = [].concat.apply([], category.locales.map(locale => locale.canonicals));
+  const products = req.app.locals.products;
+
+  products.find({categories_tags: {$in: canonicals}}, {projection: {code: 1, product_name: 1, brands: 1, nutriments:1}}).toArray(function (err, products) {
     if (err) {
       return next(new Error(err))
     }
@@ -126,22 +110,12 @@ offSortRoutes.route('/findBestProducts/:category').get(function (req, res, next)
 
 })
 
-var getCanonicalValue = function(category) {
-  // lower case + replacing spaces by dashes + removing accents
-  return category.toLowerCase().replace(/ /g, "-").normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-}
-
-
-var getCanonicalValues = function(categories) {
-  return categories.map(category => getCanonicalValue(category));
-}
-
 var findCategory = function (canonicalCategory) {
   //console.time("findCategory");
-  for(var i=0; i<categories.length; i++) {
-    var category = categories[i];
-    for(var j=0; j<category.locales.length; j++) {
-      var localeCategory = category.locales[j];
+  for(let i=0; i<categories.length; i++) {
+    let category = categories[i];
+    for(let j=0; j<category.locales.length; j++) {
+      let localeCategory = category.locales[j];
       if(localeCategory.canonicals.indexOf(canonicalCategory) > -1) {
         //console.timeEnd("findCategory")
         return category;

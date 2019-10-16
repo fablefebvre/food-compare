@@ -2,17 +2,24 @@
     "name": "off-sort",
     "version": "0.0.0",
     "description": "Sort data from Open Food Facts",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/fablefebvre/food-compare"
+    },
+    "license": "GPL-3.0-or-later",
     "main": "server.js",
     "author": "Fabrice LEFEBVRE",
     "dependencies": {
-        "body-parser": "^1.18.3",
-        "express": "~4.16.3",
-        "method-override": "~2.3.10",
-        "mongoose": "~5.1.1",
-        "morgan": "~1.9.0"
+        "body-parser": "^1.19.0",
+        "express": "~4.17.1",
+        "method-override": "~3.0.0",
+        "mongodb": "^3.3.2",
+        "morgan": "~1.9.1"
     },
     "devDependencies": {
-        "eslint-config-prettier": "^6.3.0",
-        "eslint-plugin-prettier": "^3.1.1"
+        "eslint": "^5.16.0",
+        "eslint-config-prettier": "^6.4.0",
+        "eslint-plugin-prettier": "^3.1.1",
+        "prettier": "^1.18.2"
     }
 }
