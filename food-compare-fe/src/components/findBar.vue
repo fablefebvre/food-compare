@@ -96,7 +96,6 @@ export default{
         },
         select() {
           const selectedCategory = this.fCategories[this.highlightedPosition]
-          console.log(selectedCategory.canonicals[0]);
           this.$emit('select', selectedCategory.canonicals[0])
           this.isOpen = false
           this.keyword = selectedCategory.labels.join(", ")

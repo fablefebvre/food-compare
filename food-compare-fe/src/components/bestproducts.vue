@@ -1,17 +1,17 @@
 <template>
   <div>
-    <b-pagination size="md" :total-rows="orderedProducts.length" v-model="currentPage" 
-    :per-page="productsPerPage" @input="getProductsData(currentPage)">
-    </b-pagination>
+    <div v-if="products.length > productsPerPage">
+      <b-pagination size="md" :total-rows="orderedProducts.length" v-model="currentPage" 
+      :per-page="productsPerPage" @input="getProductsData(currentPage)">
+      </b-pagination>
+    </div>
 
     <b-list-group id="my-table" v-for="product of currentProducts" v-bind:data="product" v-bind:key="product.code">
-      <b-list-group-item href="#" class="flex-column align-items-start" v-on:click="changeProduct(product)">
-        <div class="d-flex justify-content-between">
-          <product-label :label=product.product_name :barCode=product.code />
-          <product-brand :brand=product.brands />
-          <product-note :product=product />
-          <product-image :product=product />
-        </div>
+      <b-list-group-item href="#" class="d-flex justify-content-between align-items-center" v-on:click="changeProduct(product)">
+        <product-label :label=product.product_name :barCode=product.code />
+        <product-brand :brand=product.brands />
+        <div class="align-self-center"><product-note :product=product /></div>
+        <product-image :product=product />
       </b-list-group-item>
     </b-list-group>
   </div>
@@ -75,7 +75,6 @@ export default {
         for(let i=(currentPage-1) * this.productsPerPage; i < max; i++) {
           this.currentProducts.push(this.orderedProducts[i]);
         }
-        console.log(this.currentProducts);
       }
     }
   }

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="product">
+  <div v-if="product && barCode != 0">
     {{product.product_name}}
     <product-bar-code :code="barCode" />
   </div>
@@ -16,7 +16,6 @@ export default {
   props: ["product"],
   watch: {
       product(newValue, oldValue) {
-        console.log("update child")
         this.barCode = newValue.code;
 		  }
   },
