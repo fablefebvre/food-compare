@@ -37,7 +37,7 @@ export default {
   watch: {
     category: function(newVal, oldVal) {
       axios
-        .get("http://localhost:4000/api/findBestProducts/" + newVal)
+        .get("http://192.168.0.27:4000/api/findBestProducts/" + newVal)
         .then(response => {
           var data = response.data;
           this.products = [];

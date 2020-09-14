@@ -35,7 +35,7 @@ export default {
 	},
 	mounted() {
 	    axios
-	      .get('http://localhost:4000/api/categoriesTax')
+	      .get('http://192.168.0.27:4000/api/categoriesTax')
 	      .then(response => {
 	      	// saving all categories in all languages locally
 	      	this.categoriesTax = response.data;

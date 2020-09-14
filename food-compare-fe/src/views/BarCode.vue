@@ -30,7 +30,7 @@ export default {
 	methods: {
 		select() {
           console.log(this.barCode);
-          axios.get('http://localhost:4000/api/findByBarCode/'+this.barCode)
+          axios.get('http://192.168.0.27:4000/api/findByBarCode/'+this.barCode)
 	      .then(response => {
 	      	var productData = response.data;
 	      	this.product = {
