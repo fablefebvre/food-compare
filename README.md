@@ -3,18 +3,26 @@ Food comparison with Open Food Facts Data
 
 ## Load Open Food Facts Mongo DB Dump:
 
-### Download the dump 
-https://world.openfoodfacts.org/data/openfoodfacts-mongodbdump.tar.gz
-
-### Launch restore:
-### On MacOS need to increase number of opened files (256 by default for a process) with the command: ulimit -S -n 2048
 ### download docker image
 docker pull mongo
-# launch docker image with docker_run.sh (set the volume where the dump is located) and then restore
+### launch docker image with docker_run.sh (set the volume where the dump is located) and then restore
+### Download the dump 
+curl https://world.openfoodfacts.org/data/openfoodfacts-mongodbdump.tar.gz -o openfoodfacts-mongodbdump.tar.gz
+### Extract
+tar -xvzf openfoodfacts-mongodbdump.tar.gz
+### move the dump in the volume folder using sudo (needed privileges)
+sudo mv dump/ foodcompare/
+### Restore the dump: in the container under folder containing dump folder
+docker exec -it mongodb bash
+su mongodb && bash
+cd /data/db
 mongorestore --port <port number>
 
 ### Create index for categories
-off.products.createIndex({categories_tags: 1})
+su mongodb && bash
+mongo
+use off
+db.products.createIndex({categories_tags: 1})
 
 ### food-compare-be
 Contains the back end: REST API with mongoose to connect to the MongoDB instance
