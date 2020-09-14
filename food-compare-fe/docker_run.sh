@@ -1,1 +1,1 @@
-docker run -p 4000:4000 -d fablefebvre/food-compare-be
+docker run -p 8081:8081 -d fablefebvre/food-compare-fe
