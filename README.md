@@ -7,7 +7,10 @@ Food comparison with Open Food Facts Data
 https://world.openfoodfacts.org/data/openfoodfacts-mongodbdump.tar.gz
 
 ### Launch restore:
-### On MacOS need to increase number of opened files (256 be default for a process) with the command: ulimit -S -n 2048
+### On MacOS need to increase number of opened files (256 by default for a process) with the command: ulimit -S -n 2048
+### download docker image
+docker pull mongo
+# launch docker image with docker_run.sh (set the volume where the dump is located) and then restore
 mongorestore --port <port number>
 
 ### Create index for categories
