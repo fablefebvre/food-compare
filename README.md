@@ -26,6 +26,8 @@ db.products.createIndex({categories_tags: 1})
 
 ### food-compare-be
 Contains the back end: REST API with mongoose to connect to the MongoDB instance
+cd food-compare-be
+docker build -t fablefebvre/food-compare-be .
 Run the sever: node server.js
 Available methods in the API:
 http://localhost:4000/api/categories => Returns distinct categories in DB
