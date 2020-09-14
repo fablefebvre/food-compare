@@ -7,7 +7,7 @@ const  mongodb = require('mongodb')
 const bodyParser = require('body-parser')
 const offSortRoutes = require('./app/Routes')
 
-const DB_URL = 'mongodb://localhost:27017/off';
+const DB_URL = 'mongodb://192.168.0.27:27017/off';
 const APP_PORT = 4000;
 const DB = 'off';
 const PRODUCTS = 'products';
