@@ -5,7 +5,6 @@
       :per-page="productsPerPage" @input="getProductsData(currentPage)">
       </b-pagination>
     </div>
-
     <b-list-group id="my-table" v-for="product of currentProducts" v-bind:data="product" v-bind:key="product.code">
       <b-list-group-item href="#" class="d-flex justify-content-between align-items-center" v-on:click="changeProduct(product)">
         <product-label :label=product.product_name :barCode=product.code />
@@ -14,6 +13,11 @@
         <product-image :product=product />
       </b-list-group-item>
     </b-list-group>
+    <div v-if="products.length > productsPerPage">
+      <b-pagination size="md" :total-rows="orderedProducts.length" v-model="currentPage" 
+      :per-page="productsPerPage" @input="getProductsData(currentPage)">
+      </b-pagination>
+    </div>
   </div>
 </template>
 <script>
